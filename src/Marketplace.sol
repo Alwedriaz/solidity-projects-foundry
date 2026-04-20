@@ -23,13 +23,7 @@ contract Marketplace {
 
         itemCount++;
 
-        items[itemCount] = Item({
-            id: itemCount,
-            seller: payable(msg.sender),
-            name: name,
-            price: price,
-            sold: false
-        });
+        items[itemCount] = Item({id: itemCount, seller: payable(msg.sender), name: name, price: price, sold: false});
 
         emit ItemListed(itemCount, msg.sender, name, price);
     }
@@ -45,7 +39,7 @@ contract Marketplace {
 
         item.sold = true;
 
-        (bool success, ) = item.seller.call{value: msg.value}("");
+        (bool success,) = item.seller.call{value: msg.value}("");
         require(success, "Transfer gagal");
 
         emit ItemPurchased(itemId, msg.sender, msg.value);
@@ -54,13 +48,7 @@ contract Marketplace {
     function getItem(uint256 itemId)
         public
         view
-        returns (
-            uint256 id,
-            address seller,
-            string memory name,
-            uint256 price,
-            bool sold
-        )
+        returns (uint256 id, address seller, string memory name, uint256 price, bool sold)
     {
         Item memory item = items[itemId];
         return (item.id, item.seller, item.name, item.price, item.sold);

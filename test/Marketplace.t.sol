@@ -21,13 +21,7 @@ contract MarketplaceTest is Test {
         vm.prank(seller);
         marketplace.listItem("Laptop", 1 ether);
 
-        (
-            uint256 id,
-            address itemSeller,
-            string memory name,
-            uint256 price,
-            bool sold
-        ) = marketplace.getItem(1);
+        (uint256 id, address itemSeller, string memory name, uint256 price, bool sold) = marketplace.getItem(1);
 
         assertEq(id, 1);
         assertEq(itemSeller, seller);
@@ -47,7 +41,7 @@ contract MarketplaceTest is Test {
 
         uint256 sellerBalanceAfter = seller.balance;
 
-        (, , , , bool sold) = marketplace.getItem(1);
+        (,,,, bool sold) = marketplace.getItem(1);
 
         assertEq(sold, true);
         assertEq(sellerBalanceAfter - sellerBalanceBefore, 2 ether);
