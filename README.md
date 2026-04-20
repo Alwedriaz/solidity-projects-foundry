@@ -78,8 +78,64 @@ Smart contract crowdfunding sederhana dengan target dana dan deadline.
 - `src/Crowdfunding.sol`
 - `test/Crowdfunding.t.sol`
 
+---
+
+### 6. Staking Contract
+Smart contract staking sederhana menggunakan token ERC-20.
+
+**Fitur:**
+- User bisa stake token
+- Saldo stake per user tercatat
+- Reward dihitung berdasarkan waktu
+- User bisa claim reward
+- User bisa unstake token
+
+**File:**
+- `src/Staking.sol`
+- `test/Staking.t.sol`
+
 ## Cara Menjalankan
 
 ```bash
 forge build
 forge test
+```
+
+## Yang Dipelajari
+- Solidity dasar
+- mapping
+- address
+- msg.sender
+- msg.value
+- payable
+- require
+- constructor
+- block.timestamp
+- escrow logic
+- vesting logic
+- ERC-20
+- Ownable
+- mint
+- transfer
+- OpenZeppelin
+- crowdfunding logic
+- deadline
+- refund
+- claim funds
+- staking logic
+- reward calculation
+- approve
+- transferFrom
+- claim reward
+- unstake
+- testing dengan Foundry
+
+## Status
+- Savings Contract: selesai
+- Escrow Contract: selesai
+- Vesting Contract: selesai
+- MyToken (ERC-20): selesai
+- Crowdfunding Contract: selesai
+- Staking Contract: selesai
+
+Semua test lulus.
