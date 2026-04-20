@@ -57,7 +57,7 @@ contract TimelockWalletTest is Test {
         vm.deal(otherUser, 2 ether);
 
         vm.prank(otherUser);
-        (bool success, ) = address(wallet).call{value: 1 ether}("");
+        (bool success,) = address(wallet).call{value: 1 ether}("");
         require(success, "Deposit gagal");
 
         assertEq(wallet.getBalance(), 6 ether);

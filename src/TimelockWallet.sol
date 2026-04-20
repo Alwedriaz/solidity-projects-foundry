@@ -31,7 +31,7 @@ contract TimelockWallet {
         uint256 amount = address(this).balance;
         require(amount > 0, "Tidak ada dana");
 
-        (bool success, ) = payable(owner).call{value: amount}("");
+        (bool success,) = payable(owner).call{value: amount}("");
         require(success, "Transfer gagal");
 
         emit Withdrawn(owner, amount);
