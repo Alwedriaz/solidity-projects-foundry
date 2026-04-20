@@ -42,7 +42,7 @@ contract Crowdfunding {
         claimed = true;
         uint256 amount = address(this).balance;
 
-        (bool success, ) = payable(owner).call{value: amount}("");
+        (bool success,) = payable(owner).call{value: amount}("");
         require(success, "Transfer gagal");
 
         emit FundsClaimed(owner, amount);
@@ -58,7 +58,7 @@ contract Crowdfunding {
         contributions[msg.sender] = 0;
         totalRaised -= amount;
 
-        (bool success, ) = payable(msg.sender).call{value: amount}("");
+        (bool success,) = payable(msg.sender).call{value: amount}("");
         require(success, "Transfer gagal");
 
         emit Refunded(msg.sender, amount);
