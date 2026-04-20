@@ -110,6 +110,20 @@ Smart contract voting sederhana untuk membuat proposal dan melakukan voting.
 - `src/Voting.sol`
 - `test/Voting.t.sol`
 
+### 8. MultiSig Wallet Contract
+Smart contract multi-signature wallet sederhana dengan beberapa owner dan minimum konfirmasi.
+
+**Fitur:**
+- Multiple owners
+- Submit transaction
+- Confirm transaction
+- Execute transaction setelah konfirmasi cukup
+- Minimum confirmations bisa diatur saat deploy
+
+**File:**
+- `src/MultiSigWallet.sol`
+- `test/MultiSigWallet.t.sol`
+
 ## Cara Menjalankan
 
 ```bash
@@ -149,6 +163,11 @@ forge test
 - voting mechanism
 - one address one vote
 - finalize proposal
+- multisig logic
+- multiple owners
+- transaction confirmations
+- execute transaction
+- authorization flow
 
 ## Status
 - Savings Contract: selesai
@@ -158,5 +177,6 @@ forge test
 - Crowdfunding Contract: selesai
 - Staking Contract: selesai
 - Voting / DAO Contract: selesai
+- MultiSig Wallet Contract: selesai
 
 Semua test lulus.
