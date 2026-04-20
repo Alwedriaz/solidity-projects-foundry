@@ -124,6 +124,20 @@ Smart contract multi-signature wallet sederhana dengan beberapa owner dan minimu
 - `src/MultiSigWallet.sol`
 - `test/MultiSigWallet.t.sol`
 
+### 9. Marketplace Contract
+Smart contract marketplace sederhana untuk listing dan membeli item dengan ETH.
+
+**Fitur:**
+- Seller bisa membuat listing
+- Buyer bisa membeli item dengan ETH
+- Item ditandai sold setelah dibeli
+- Seller menerima pembayaran
+- Buyer tidak bisa membeli item sendiri
+
+**File:**
+- `src/Marketplace.sol`
+- `test/Marketplace.t.sol`
+
 ## Cara Menjalankan
 
 ```bash
@@ -168,6 +182,11 @@ forge test
 - transaction confirmations
 - execute transaction
 - authorization flow
+- marketplace logic
+- listing item
+- buy flow
+- sold state
+- payment transfer
 
 ## Status
 - Savings Contract: selesai
@@ -178,5 +197,6 @@ forge test
 - Staking Contract: selesai
 - Voting / DAO Contract: selesai
 - MultiSig Wallet Contract: selesai
+- Marketplace Contract: selesai
 
 Semua test lulus.
