@@ -44,10 +44,7 @@ contract MultiSigWallet {
 
     constructor(address[] memory _owners, uint256 _requiredConfirmations) {
         require(_owners.length > 0, "Owners tidak boleh kosong");
-        require(
-            _requiredConfirmations > 0 && _requiredConfirmations <= _owners.length,
-            "Jumlah konfirmasi tidak valid"
-        );
+        require(_requiredConfirmations > 0 && _requiredConfirmations <= _owners.length, "Jumlah konfirmasi tidak valid");
 
         for (uint256 i = 0; i < _owners.length; i++) {
             address owner = _owners[i];
@@ -68,15 +65,7 @@ contract MultiSigWallet {
     function submitTransaction(address to, uint256 value, bytes memory data) public onlyOwner {
         require(to != address(0), "Address tujuan tidak valid");
 
-        transactions.push(
-            Transaction({
-                to: to,
-                value: value,
-                data: data,
-                executed: false,
-                numConfirmations: 0
-            })
-        );
+        transactions.push(Transaction({to: to, value: value, data: data, executed: false, numConfirmations: 0}));
 
         emit SubmitTransaction(transactions.length - 1, to, value, data);
     }
@@ -96,22 +85,14 @@ contract MultiSigWallet {
         emit ConfirmTransaction(msg.sender, txIndex);
     }
 
-    function executeTransaction(uint256 txIndex)
-        public
-        onlyOwner
-        txExists(txIndex)
-        notExecuted(txIndex)
-    {
+    function executeTransaction(uint256 txIndex) public onlyOwner txExists(txIndex) notExecuted(txIndex) {
         Transaction storage transaction = transactions[txIndex];
 
-        require(
-            transaction.numConfirmations >= requiredConfirmations,
-            "Konfirmasi belum cukup"
-        );
+        require(transaction.numConfirmations >= requiredConfirmations, "Konfirmasi belum cukup");
 
         transaction.executed = true;
 
-        (bool success, ) = transaction.to.call{value: transaction.value}(transaction.data);
+        (bool success,) = transaction.to.call{value: transaction.value}(transaction.data);
         require(success, "Eksekusi gagal");
 
         emit ExecuteTransaction(msg.sender, txIndex);
@@ -120,22 +101,10 @@ contract MultiSigWallet {
     function getTransaction(uint256 txIndex)
         public
         view
-        returns (
-            address to,
-            uint256 value,
-            bytes memory data,
-            bool executed,
-            uint256 numConfirmations
-        )
+        returns (address to, uint256 value, bytes memory data, bool executed, uint256 numConfirmations)
     {
         Transaction memory transaction = transactions[txIndex];
-        return (
-            transaction.to,
-            transaction.value,
-            transaction.data,
-            transaction.executed,
-            transaction.numConfirmations
-        );
+        return (transaction.to, transaction.value, transaction.data, transaction.executed, transaction.numConfirmations);
     }
 
     function getTransactionCount() public view returns (uint256) {

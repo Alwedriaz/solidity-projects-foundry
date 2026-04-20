@@ -23,7 +23,7 @@ contract MultiSigWalletTest is Test {
 
         vm.deal(owner1, 10 ether);
         vm.prank(owner1);
-        (bool success, ) = address(wallet).call{value: 5 ether}("");
+        (bool success,) = address(wallet).call{value: 5 ether}("");
         require(success, "Funding wallet gagal");
     }
 
@@ -33,13 +33,7 @@ contract MultiSigWalletTest is Test {
 
         assertEq(wallet.getTransactionCount(), 1);
 
-        (
-            address to,
-            uint256 value,
-            ,
-            bool executed,
-            uint256 numConfirmations
-        ) = wallet.getTransaction(0);
+        (address to, uint256 value,, bool executed, uint256 numConfirmations) = wallet.getTransaction(0);
 
         assertEq(to, recipient);
         assertEq(value, 1 ether);
@@ -54,7 +48,7 @@ contract MultiSigWalletTest is Test {
         vm.prank(owner1);
         wallet.confirmTransaction(0);
 
-        (, , , , uint256 numConfirmations) = wallet.getTransaction(0);
+        (,,,, uint256 numConfirmations) = wallet.getTransaction(0);
         assertEq(numConfirmations, 1);
     }
 
@@ -87,7 +81,7 @@ contract MultiSigWalletTest is Test {
 
         uint256 balanceAfter = recipient.balance;
 
-        (, , , bool executed, uint256 numConfirmations) = wallet.getTransaction(0);
+        (,,, bool executed, uint256 numConfirmations) = wallet.getTransaction(0);
 
         assertEq(balanceAfter - balanceBefore, 1 ether);
         assertEq(executed, true);
