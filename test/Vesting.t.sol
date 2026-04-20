@@ -14,11 +14,7 @@ contract VestingTest is Test {
     function setUp() public {
         startTime = block.timestamp + 10;
 
-        vesting = new Vesting{value: 10 ether}(
-            beneficiary,
-            startTime,
-            duration
-        );
+        vesting = new Vesting{value: 10 ether}(beneficiary, startTime, duration);
     }
 
     function test_NoReleaseBeforeStart() public {

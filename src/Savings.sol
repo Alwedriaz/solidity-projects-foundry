@@ -19,7 +19,7 @@ contract Savings {
 
         balances[msg.sender] -= amount;
 
-        (bool success, ) = payable(msg.sender).call{value: amount}("");
+        (bool success,) = payable(msg.sender).call{value: amount}("");
         require(success, "Transfer gagal");
 
         emit Withdrawn(msg.sender, amount);

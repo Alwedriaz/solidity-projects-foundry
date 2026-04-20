@@ -7,11 +7,7 @@ contract Vesting {
     uint256 public immutable duration;
     uint256 public released;
 
-    constructor(
-        address _beneficiary,
-        uint256 _start,
-        uint256 _duration
-    ) payable {
+    constructor(address _beneficiary, uint256 _start, uint256 _duration) payable {
         require(_beneficiary != address(0), "Beneficiary tidak valid");
         require(_duration > 0, "Durasi harus lebih dari 0");
         require(msg.value > 0, "Harus ada dana awal");
@@ -48,7 +44,7 @@ contract Vesting {
 
         released += amount;
 
-        (bool success, ) = payable(beneficiary).call{value: amount}("");
+        (bool success,) = payable(beneficiary).call{value: amount}("");
         require(success, "Transfer gagal");
     }
 

@@ -27,7 +27,7 @@ contract Escrow {
 
         isReleased = true;
 
-        (bool success, ) = payable(seller).call{value: address(this).balance}("");
+        (bool success,) = payable(seller).call{value: address(this).balance}("");
         require(success, "Transfer gagal");
     }
 
