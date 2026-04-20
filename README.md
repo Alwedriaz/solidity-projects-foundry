@@ -94,6 +94,22 @@ Smart contract staking sederhana menggunakan token ERC-20.
 - `src/Staking.sol`
 - `test/Staking.t.sol`
 
+---
+
+### 7. Voting / DAO Contract
+Smart contract voting sederhana untuk membuat proposal dan melakukan voting.
+
+**Fitur:**
+- Owner bisa membuat proposal
+- User bisa vote setuju atau tidak
+- Satu address hanya bisa vote satu kali per proposal
+- Proposal bisa difinalisasi
+- Hasil voting bisa dilihat
+
+**File:**
+- `src/Voting.sol`
+- `test/Voting.t.sol`
+
 ## Cara Menjalankan
 
 ```bash
@@ -129,6 +145,10 @@ forge test
 - claim reward
 - unstake
 - testing dengan Foundry
+- proposal logic
+- voting mechanism
+- one address one vote
+- finalize proposal
 
 ## Status
 - Savings Contract: selesai
@@ -137,5 +157,6 @@ forge test
 - MyToken (ERC-20): selesai
 - Crowdfunding Contract: selesai
 - Staking Contract: selesai
+- Voting / DAO Contract: selesai
 
 Semua test lulus.
