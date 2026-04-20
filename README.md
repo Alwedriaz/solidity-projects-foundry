@@ -138,6 +138,22 @@ Smart contract marketplace sederhana untuk listing dan membeli item dengan ETH.
 - `src/Marketplace.sol`
 - `test/Marketplace.t.sol`
 
+---
+
+### 10. Timelock Wallet Contract
+Smart contract wallet sederhana yang mengunci dana sampai waktu tertentu.
+
+**Fitur:**
+- Dana dikunci sampai waktu unlock
+- Hanya owner yang bisa withdraw
+- Bisa menerima tambahan ETH
+- Withdraw hanya bisa dilakukan setelah waktu unlock
+- Saldo wallet bisa dilihat
+
+**File:**
+- `src/TimelockWallet.sol`
+- `test/TimelockWallet.t.sol`
+
 ## Cara Menjalankan
 
 ```bash
@@ -187,6 +203,11 @@ forge test
 - buy flow
 - sold state
 - payment transfer
+- timelock logic
+- unlock time
+- owner-only withdraw
+- receive ETH
+- time-based access
 
 ## Status
 - Savings Contract: selesai
@@ -198,5 +219,6 @@ forge test
 - Voting / DAO Contract: selesai
 - MultiSig Wallet Contract: selesai
 - Marketplace Contract: selesai
+- Timelock Wallet Contract: selesai
 
 Semua test lulus.
