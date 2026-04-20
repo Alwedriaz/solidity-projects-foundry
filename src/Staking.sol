@@ -4,8 +4,8 @@ pragma solidity ^0.8.33;
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract Staking {
-    IERC20 public immutable token;
-    uint256 public immutable rewardRate;
+    IERC20 public immutable TOKEN;
+    uint256 public immutable REWARD_RATE;
 
     mapping(address => uint256) public stakedBalances;
     mapping(address => uint256) public rewards;
@@ -19,8 +19,8 @@ contract Staking {
         require(_token != address(0), "Token tidak valid");
         require(_rewardRate > 0, "Reward rate harus lebih dari 0");
 
-        token = IERC20(_token);
-        rewardRate = _rewardRate;
+        TOKEN = IERC20(_token);
+        REWARD_RATE = _rewardRate;
     }
 
     function earned(address user) public view returns (uint256) {
@@ -29,7 +29,7 @@ contract Staking {
         }
 
         uint256 elapsed = block.timestamp - lastUpdated[user];
-        uint256 pending = (elapsed * stakedBalances[user] * rewardRate) / 1e18;
+        uint256 pending = (elapsed * stakedBalances[user] * REWARD_RATE) / 1e18;
 
         return rewards[user] + pending;
     }
@@ -40,7 +40,7 @@ contract Staking {
         _updateReward(msg.sender);
         stakedBalances[msg.sender] += amount;
 
-        bool success = token.transferFrom(msg.sender, address(this), amount);
+        bool success = TOKEN.transferFrom(msg.sender, address(this), amount);
         require(success, "Transfer gagal");
 
         emit Staked(msg.sender, amount);
@@ -53,7 +53,7 @@ contract Staking {
         _updateReward(msg.sender);
         stakedBalances[msg.sender] -= amount;
 
-        bool success = token.transfer(msg.sender, amount);
+        bool success = TOKEN.transfer(msg.sender, amount);
         require(success, "Transfer gagal");
 
         emit Unstaked(msg.sender, amount);
@@ -67,7 +67,7 @@ contract Staking {
 
         rewards[msg.sender] = 0;
 
-        bool success = token.transfer(msg.sender, reward);
+        bool success = TOKEN.transfer(msg.sender, reward);
         require(success, "Transfer gagal");
 
         emit RewardClaimed(msg.sender, reward);

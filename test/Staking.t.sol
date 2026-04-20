@@ -18,8 +18,11 @@ contract StakingTest is Test {
         token = new MyToken(10000 ether);
         staking = new Staking(address(token), rewardRate);
 
-        token.transfer(user1, 1000 ether);
-        token.transfer(address(staking), 2000 ether);
+        bool success1 = token.transfer(user1, 1000 ether);
+        require(success1, "Transfer ke user1 gagal");
+
+        bool success2 = token.transfer(address(staking), 2000 ether);
+        require(success2, "Transfer ke staking gagal");
 
         vm.prank(user1);
         token.approve(address(staking), type(uint256).max);

@@ -20,7 +20,8 @@ contract MyTokenTest is Test {
     }
 
     function test_Transfer() public {
-        token.transfer(user1, 100 ether);
+        bool success = token.transfer(user1, 100 ether);
+        require(success, "Transfer gagal");
 
         assertEq(token.balanceOf(user1), 100 ether);
         assertEq(token.balanceOf(owner), 900 ether);
