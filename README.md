@@ -62,6 +62,22 @@ Smart contract token sederhana menggunakan OpenZeppelin.
 - `src/MyToken.sol`
 - `test/MyToken.t.sol`
 
+---
+
+### 5. Crowdfunding Contract
+Smart contract crowdfunding sederhana dengan target dana dan deadline.
+
+**Fitur:**
+- User bisa berkontribusi ETH
+- Campaign punya target dan deadline
+- Owner bisa claim dana jika target tercapai
+- User bisa refund jika target tidak tercapai
+- Kontribusi tiap user tercatat
+
+**File:**
+- `src/Crowdfunding.sol`
+- `test/Crowdfunding.t.sol`
+
 ## Cara Menjalankan
 
 ```bash
