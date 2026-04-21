@@ -154,6 +154,22 @@ Smart contract wallet sederhana yang mengunci dana sampai waktu tertentu.
 - `src/TimelockWallet.sol`
 - `test/TimelockWallet.t.sol`
 
+---
+
+### 11. Auction Contract
+Smart contract auction sederhana untuk proses lelang dengan bidder tertinggi.
+
+**Fitur:**
+- User bisa melakukan bid dengan ETH
+- Bid baru harus lebih tinggi dari bid sebelumnya
+- Bidder sebelumnya bisa menarik refund
+- Owner bisa mengakhiri auction setelah deadline
+- Pemenang auction dan nilai tertinggi tercatat
+
+**File:**
+- `src/Auction.sol`
+- `test/Auction.t.sol`
+
 ## Cara Menjalankan
 
 ```bash
@@ -208,6 +224,13 @@ forge test
 - owner-only withdraw
 - receive ETH
 - time-based access
+- auction logic
+- highest bidder
+- highest bid
+- refund mechanism
+- bidding flow
+- auction deadline
+- owner end auction
 
 ## Status
 - Savings Contract: selesai
@@ -220,5 +243,6 @@ forge test
 - MultiSig Wallet Contract: selesai
 - Marketplace Contract: selesai
 - Timelock Wallet Contract: selesai
+- Auction Contract: selesai
 
 Semua test lulus.
