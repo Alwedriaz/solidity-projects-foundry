@@ -2,15 +2,15 @@
 
 A portfolio of Solidity smart contracts built with **Foundry** as part of my smart contract engineering learning journey.
 
-This repository contains hands-on projects covering core smart contract patterns such as ETH transfers, access control, token mechanics, staking, governance, auctions, lotteries, and NFTs.
+This repository contains hands-on projects covering core smart contract patterns such as ETH transfers, access control, token mechanics, staking, governance, auctions, lotteries, NFTs, and Merkle-based token distribution.
 
 ## Highlights
 
-- 13 Solidity projects
+- 14 Solidity projects
 - Built and tested with **Foundry**
 - Covers both **ERC-20** and **ERC-721**
 - Includes automated testing with **Forge**
-- Organized as a practical learning portfolio
+- Organized as a practical smart contract portfolio
 
 ## Tech Stack
 
@@ -34,8 +34,9 @@ This repository contains hands-on projects covering core smart contract patterns
 | 9 | Marketplace Contract | Listing and buying with ETH |
 | 10 | Timelock Wallet Contract | Locked funds with delayed withdrawal |
 | 11 | Auction Contract | Highest-bid auction flow |
-| 12 | Lottery Contract | Entrance fee, winner selection, prize payout |
+| 12 | Lottery Contract | Entrance fee, winner selection, and prize payout |
 | 13 | NFT Collection Contract | ERC-721 minting with mint fee and max supply |
+| 14 | Merkle Airdrop Contract | Merkle proof-based ERC-20 token claiming |
 
 ## What I Practiced
 
@@ -49,15 +50,17 @@ This repository contains hands-on projects covering core smart contract patterns
 - time-based logic
 - refund and claim patterns
 - ERC-20 token mechanics
+- ERC-721 / NFT minting
+- token URI handling
+- max supply checks
 - staking and reward calculation
 - governance and voting systems
 - multi-signature transaction flow
 - marketplace logic
 - auction systems
 - lottery mechanics
-- ERC-721 / NFT minting
-- token URI handling
-- max supply checks
+- Merkle proof verification
+- whitelist-based token distribution
 - testing with Foundry
 
 ## Run Locally
@@ -65,15 +68,19 @@ This repository contains hands-on projects covering core smart contract patterns
 ```bash
 forge build
 forge test
+```
 
-Repository Structure
+## Repository Structure
+
+```bash
 src/    # smart contracts
 test/   # Foundry tests
+```
 
-Status
+## Status
 
 All projects completed and tests passing.
 
-Purpose
+## Purpose
 
 This repository documents my hands-on progress in smart contract development through practical Solidity projects and testing with Foundry.
