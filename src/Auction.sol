@@ -48,7 +48,7 @@ contract Auction {
 
         pendingReturns[msg.sender] = 0;
 
-        (bool success, ) = payable(msg.sender).call{value: amount}("");
+        (bool success,) = payable(msg.sender).call{value: amount}("");
         require(success, "Transfer gagal");
 
         emit RefundWithdrawn(msg.sender, amount);
@@ -61,7 +61,7 @@ contract Auction {
         ended = true;
 
         if (highestBid > 0) {
-            (bool success, ) = payable(owner).call{value: highestBid}("");
+            (bool success,) = payable(owner).call{value: highestBid}("");
             require(success, "Transfer gagal");
         }
 
