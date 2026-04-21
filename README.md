@@ -2,11 +2,11 @@
 
 A portfolio of Solidity smart contracts built with **Foundry** as part of my smart contract engineering learning journey.
 
-This repository contains hands-on projects covering core smart contract patterns such as ETH transfers, access control, token mechanics, staking, governance, auctions, lotteries, NFTs, and Merkle-based token distribution.
+This repository contains hands-on projects covering core smart contract patterns such as ETH transfers, access control, token mechanics, staking, governance, auctions, lotteries, NFTs, Merkle-based token distribution, treasury management, and vault logic.
 
 ## Highlights
 
-- 14 Solidity projects
+- 20 Solidity projects
 - Built and tested with **Foundry**
 - Covers both **ERC-20** and **ERC-721**
 - Includes automated testing with **Forge**
@@ -37,12 +37,18 @@ This repository contains hands-on projects covering core smart contract patterns
 | 12 | Lottery Contract | Entrance fee, winner selection, and prize payout |
 | 13 | NFT Collection Contract | ERC-721 minting with mint fee and max supply |
 | 14 | Merkle Airdrop Contract | Merkle proof-based ERC-20 token claiming |
+| 15 | Payment Splitter Contract | Split ETH payouts by predefined shares |
+| 16 | Dutch Auction Contract | Time-based decreasing-price auction |
+| 17 | NFT Staking Contract | Stake NFTs to earn ERC-20 rewards |
+| 18 | Advanced Token Vesting Contract | Cliff, duration, release, and revocable vesting |
+| 19 | DAO Treasury Contract | Member proposals, approvals, and treasury execution |
+| 20 | Simple Vault Contract | Deposit assets and receive proportional vault shares |
 
 ## What I Practiced
 
 - Solidity fundamentals
-- ETH transfers
 - `msg.sender` and `msg.value`
+- ETH transfers
 - mappings and arrays
 - access control
 - payable functions
@@ -61,6 +67,12 @@ This repository contains hands-on projects covering core smart contract patterns
 - lottery mechanics
 - Merkle proof verification
 - whitelist-based token distribution
+- payment splitting by shares
+- Dutch auction pricing
+- NFT staking rewards
+- advanced vesting schedules
+- DAO treasury proposal flow
+- vault share accounting
 - testing with Foundry
 
 ## Run Locally
@@ -79,7 +91,7 @@ test/   # Foundry tests
 
 ## Status
 
-All projects completed and tests passing.
+All 20 projects completed and tests passing.
 
 ## Purpose
 
