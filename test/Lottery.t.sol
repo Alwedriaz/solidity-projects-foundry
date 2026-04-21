@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {Lottery} from "../src/lottery.sol";
+import {Lottery} from "../src/Lottery.sol";
 
 contract LotteryTest is Test {
     Lottery lottery;
