@@ -15,6 +15,7 @@ This repository contains hands-on projects covering core smart contract patterns
 ## Featured Hands-On Case Study
 
 ### Stablecoin Payroll Manager
+
 A product-style smart contract case study for recurring stablecoin payroll distribution to contributors.
 
 **What it demonstrates:**
