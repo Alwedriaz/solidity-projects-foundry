@@ -11,17 +11,20 @@ contract StablecoinPayroll {
     error InvalidPeriodDuration();
     error RecipientAlreadyExists();
     error RecipientNotFound();
-    error RecipientInactive();
     error PayrollPaused();
     error PeriodNotStarted();
-    error AlreadyClaimedForCurrentPeriod();
+    error NothingToClaim();
     error InsufficientTreasuryBalance();
     error TransferFailed();
+    error ArrayLengthMismatch();
+    error EmptyBatch();
 
     struct Recipient {
         uint256 amountPerPeriod;
         bool active;
-        uint256 lastClaimedPeriod;
+        uint256 lastAccruedPeriod;
+        uint256 startPeriod;
+        uint256 accruedBalance;
         bool exists;
     }
 
@@ -39,9 +42,9 @@ contract StablecoinPayroll {
     event TreasuryDeposited(address indexed owner, uint256 amount);
     event FinanceManagerUpdated(address indexed previousManager, address indexed newManager);
     event PayrollPauseUpdated(bool isPaused);
-    event RecipientAdded(address indexed recipient, uint256 amountPerPeriod);
-    event RecipientUpdated(address indexed recipient, uint256 amountPerPeriod, bool active);
-    event Claimed(address indexed recipient, uint256 indexed period, uint256 amount);
+    event RecipientAdded(address indexed recipient, uint256 amountPerPeriod, uint256 startPeriod);
+    event RecipientUpdated(address indexed recipient, uint256 amountPerPeriod, bool active, uint256 accruedBalance);
+    event Claimed(address indexed recipient, uint256 amount);
     event TreasuryWithdrawn(address indexed owner, uint256 amount);
 
     modifier onlyOwner() {
@@ -88,55 +91,75 @@ contract StablecoinPayroll {
     }
 
     function addRecipient(address recipient, uint256 amountPerPeriod) external onlyAdmin {
-        if (recipient == address(0)) revert InvalidAddress();
-        if (amountPerPeriod == 0) revert InvalidAmount();
-        if (recipients[recipient].exists) revert RecipientAlreadyExists();
+        _addRecipient(recipient, amountPerPeriod);
+    }
 
-        recipients[recipient] =
-            Recipient({amountPerPeriod: amountPerPeriod, active: true, lastClaimedPeriod: 0, exists: true});
+    function batchAddRecipients(address[] calldata recipientAddresses, uint256[] calldata amountsPerPeriod)
+        external
+        onlyAdmin
+    {
+        uint256 length = recipientAddresses.length;
+        if (length == 0) revert EmptyBatch();
+        if (length != amountsPerPeriod.length) revert ArrayLengthMismatch();
 
-        emit RecipientAdded(recipient, amountPerPeriod);
+        for (uint256 i = 0; i < length; i++) {
+            _addRecipient(recipientAddresses[i], amountsPerPeriod[i]);
+        }
     }
 
     function updateRecipientAmount(address recipient, uint256 newAmountPerPeriod) external onlyAdmin {
-        if (!recipients[recipient].exists) revert RecipientNotFound();
-        if (newAmountPerPeriod == 0) revert InvalidAmount();
+        _updateRecipientAmount(recipient, newAmountPerPeriod);
+    }
 
-        recipients[recipient].amountPerPeriod = newAmountPerPeriod;
+    function batchUpdateRecipientAmounts(address[] calldata recipientAddresses, uint256[] calldata newAmountsPerPeriod)
+        external
+        onlyAdmin
+    {
+        uint256 length = recipientAddresses.length;
+        if (length == 0) revert EmptyBatch();
+        if (length != newAmountsPerPeriod.length) revert ArrayLengthMismatch();
 
-        emit RecipientUpdated(recipient, recipients[recipient].amountPerPeriod, recipients[recipient].active);
+        for (uint256 i = 0; i < length; i++) {
+            _updateRecipientAmount(recipientAddresses[i], newAmountsPerPeriod[i]);
+        }
     }
 
     function setRecipientActive(address recipient, bool isActive) external onlyAdmin {
-        if (!recipients[recipient].exists) revert RecipientNotFound();
+        _setRecipientActive(recipient, isActive);
+    }
 
-        recipients[recipient].active = isActive;
+    function batchSetRecipientActive(address[] calldata recipientAddresses, bool[] calldata statuses)
+        external
+        onlyAdmin
+    {
+        uint256 length = recipientAddresses.length;
+        if (length == 0) revert EmptyBatch();
+        if (length != statuses.length) revert ArrayLengthMismatch();
 
-        emit RecipientUpdated(recipient, recipients[recipient].amountPerPeriod, recipients[recipient].active);
+        for (uint256 i = 0; i < length; i++) {
+            _setRecipientActive(recipientAddresses[i], statuses[i]);
+        }
     }
 
     function claim() external {
         if (paused) revert PayrollPaused();
 
-        Recipient storage recipient = recipients[msg.sender];
+        Recipient storage user = recipients[msg.sender];
+        if (!user.exists) revert RecipientNotFound();
 
-        if (!recipient.exists) revert RecipientNotFound();
-        if (!recipient.active) revert RecipientInactive();
+        _accrue(msg.sender);
 
-        uint256 currentPeriod = getCurrentPeriod();
-        if (currentPeriod == 0) revert PeriodNotStarted();
-        if (recipient.lastClaimedPeriod >= currentPeriod) revert AlreadyClaimedForCurrentPeriod();
-
-        uint256 amount = recipient.amountPerPeriod;
+        uint256 amount = user.accruedBalance;
+        if (amount == 0) revert NothingToClaim();
         if (stablecoin.balanceOf(address(this)) < amount) revert InsufficientTreasuryBalance();
 
-        recipient.lastClaimedPeriod = currentPeriod;
+        user.accruedBalance = 0;
         totalClaimed += amount;
 
         bool success = stablecoin.transfer(msg.sender, amount);
         if (!success) revert TransferFailed();
 
-        emit Claimed(msg.sender, currentPeriod, amount);
+        emit Claimed(msg.sender, amount);
     }
 
     function withdrawTreasury(uint256 amount) external onlyOwner {
@@ -159,5 +182,102 @@ contract StablecoinPayroll {
 
     function getTreasuryBalance() external view returns (uint256) {
         return stablecoin.balanceOf(address(this));
+    }
+
+    function previewClaimable(address recipient) external view returns (uint256) {
+        Recipient memory user = recipients[recipient];
+        if (!user.exists) return 0;
+
+        uint256 accrued = user.accruedBalance;
+        uint256 currentPeriod = getCurrentPeriod();
+
+        if (!user.active || currentPeriod == 0) {
+            return accrued;
+        }
+
+        if (currentPeriod > user.lastAccruedPeriod) {
+            uint256 periodsToAccrue = currentPeriod - user.lastAccruedPeriod;
+            accrued += periodsToAccrue * user.amountPerPeriod;
+        }
+
+        return accrued;
+    }
+
+    function _addRecipient(address recipient, uint256 amountPerPeriod) internal {
+        if (recipient == address(0)) revert InvalidAddress();
+        if (amountPerPeriod == 0) revert InvalidAmount();
+        if (recipients[recipient].exists) revert RecipientAlreadyExists();
+
+        uint256 currentPeriod = getCurrentPeriod();
+        uint256 recipientStartPeriod = currentPeriod == 0 ? 1 : currentPeriod;
+
+        recipients[recipient] = Recipient({
+            amountPerPeriod: amountPerPeriod,
+            active: true,
+            lastAccruedPeriod: recipientStartPeriod - 1,
+            startPeriod: recipientStartPeriod,
+            accruedBalance: 0,
+            exists: true
+        });
+
+        emit RecipientAdded(recipient, amountPerPeriod, recipientStartPeriod);
+    }
+
+    function _updateRecipientAmount(address recipient, uint256 newAmountPerPeriod) internal {
+        if (!recipients[recipient].exists) revert RecipientNotFound();
+        if (newAmountPerPeriod == 0) revert InvalidAmount();
+
+        if (getCurrentPeriod() != 0) {
+            _accrue(recipient);
+        }
+
+        recipients[recipient].amountPerPeriod = newAmountPerPeriod;
+
+        emit RecipientUpdated(
+            recipient,
+            recipients[recipient].amountPerPeriod,
+            recipients[recipient].active,
+            recipients[recipient].accruedBalance
+        );
+    }
+
+    function _setRecipientActive(address recipient, bool isActive) internal {
+        if (!recipients[recipient].exists) revert RecipientNotFound();
+
+        Recipient storage user = recipients[recipient];
+        uint256 currentPeriod = getCurrentPeriod();
+
+        if (user.active && !isActive) {
+            if (currentPeriod != 0) {
+                _accrue(recipient);
+            }
+            user.active = false;
+        } else if (!user.active && isActive) {
+            if (currentPeriod == 0) {
+                user.lastAccruedPeriod = user.startPeriod - 1;
+            } else {
+                user.lastAccruedPeriod = currentPeriod - 1;
+            }
+
+            user.active = true;
+        }
+
+        emit RecipientUpdated(recipient, user.amountPerPeriod, user.active, user.accruedBalance);
+    }
+
+    function _accrue(address recipient) internal {
+        Recipient storage user = recipients[recipient];
+
+        if (!user.exists) revert RecipientNotFound();
+
+        uint256 currentPeriod = getCurrentPeriod();
+        if (currentPeriod == 0) revert PeriodNotStarted();
+        if (!user.active) return;
+
+        if (currentPeriod > user.lastAccruedPeriod) {
+            uint256 periodsToAccrue = currentPeriod - user.lastAccruedPeriod;
+            user.accruedBalance += periodsToAccrue * user.amountPerPeriod;
+            user.lastAccruedPeriod = currentPeriod;
+        }
     }
 }

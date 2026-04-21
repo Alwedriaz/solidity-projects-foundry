@@ -12,6 +12,22 @@ This repository contains hands-on projects covering core smart contract patterns
 - Includes automated testing with **Forge**
 - Organized as a practical smart contract portfolio
 
+## Featured Hands-On Case Study
+
+### Stablecoin Payroll Manager
+A product-style smart contract case study for recurring stablecoin payroll distribution to contributors.
+
+**What it demonstrates:**
+- recurring stablecoin payroll claims
+- finance manager operational role
+- pause control for payroll safety
+- accrual of missed periods
+- no backpay for newly added recipients
+- inactive recipients can still claim previously accrued balance
+- batch recipient management for real operational workflows
+
+This case study was built as a more realistic, product-oriented smart contract system rather than a single isolated practice contract.
+
 ## Tech Stack
 
 - Solidity
