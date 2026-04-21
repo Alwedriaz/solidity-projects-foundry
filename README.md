@@ -2,11 +2,11 @@
 
 A portfolio of Solidity smart contracts built with **Foundry** as part of my smart contract engineering learning journey.
 
-This repository contains hands-on projects covering core smart contract patterns such as ETH transfers, access control, token mechanics, staking, governance, auctions, lotteries, NFTs, Merkle-based token distribution, treasury management, and vault logic.
+This repository contains hands-on projects covering core smart contract patterns such as ETH transfers, access control, token mechanics, staking, governance, auctions, lotteries, NFTs, Merkle-based token distribution, treasury management, vault logic, and yield systems.
 
 ## Highlights
 
-- 20 Solidity projects
+- 25 Solidity projects
 - Built and tested with **Foundry**
 - Covers both **ERC-20** and **ERC-721**
 - Includes automated testing with **Forge**
@@ -43,6 +43,11 @@ This repository contains hands-on projects covering core smart contract patterns
 | 18 | Advanced Token Vesting Contract | Cliff, duration, release, and revocable vesting |
 | 19 | DAO Treasury Contract | Member proposals, approvals, and treasury execution |
 | 20 | Simple Vault Contract | Deposit assets and receive proportional vault shares |
+| 21 | ERC20 Staking Pool | Stake ERC-20 tokens to earn rewards over time |
+| 22 | Token Faucet Contract | Claim tokens with cooldown-based access |
+| 23 | Whitelist NFT Mint | Merkle proof-based whitelist NFT minting |
+| 24 | Yield Farming Contract | LP staking with reward-per-share accounting |
+| 25 | Governance Snapshot Voting | Snapshot-based voting with quorum and proposal finalization |
 
 ## What I Practiced
 
@@ -73,6 +78,12 @@ This repository contains hands-on projects covering core smart contract patterns
 - advanced vesting schedules
 - DAO treasury proposal flow
 - vault share accounting
+- ERC-20 staking pool accounting
+- faucet cooldown mechanisms
+- whitelist NFT minting with Merkle proofs
+- yield farming reward-per-share accounting
+- governance snapshot voting
+- quorum-based proposal finalization
 - testing with Foundry
 
 ## Run Locally
@@ -91,7 +102,7 @@ test/   # Foundry tests
 
 ## Status
 
-All 20 projects completed and tests passing.
+All 25 projects completed and tests passing.
 
 ## Purpose
 
