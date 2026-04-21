@@ -1,248 +1,54 @@
 # Solidity Projects with Foundry
 
-Kumpulan smart contract sederhana menggunakan Solidity dan Foundry sebagai bagian dari portfolio belajar smart contract engineering.
+A portfolio of Solidity smart contracts built with **Foundry** as part of my smart contract engineering learning journey.
 
-## Project di dalam Repo
+## Tech Stack
+- Solidity
+- Foundry
+- Forge
+- OpenZeppelin
 
-### 1. Savings Contract
-Smart contract tabungan sederhana.
+## Projects
 
-**Fitur:**
-- Deposit ETH
-- Withdraw ETH
-- Simpan saldo per address
-- Test untuk kondisi berhasil dan gagal
+- **Savings Contract** — deposit and withdraw ETH
+- **Escrow Contract** — simple buyer-seller escrow flow
+- **Vesting Contract** — time-based fund release
+- **MyToken (ERC-20)** — token contract with minting logic
+- **Crowdfunding Contract** — target, deadline, claim, and refund flow
+- **Staking Contract** — token staking with reward calculation
+- **Voting / DAO Contract** — proposal creation and voting system
+- **MultiSig Wallet Contract** — multi-owner transaction approval
+- **Marketplace Contract** — item listing and ETH purchase flow
+- **Timelock Wallet Contract** — locked funds with delayed withdrawal
+- **Auction Contract** — highest-bid auction with refund logic
+- **Lottery Contract** — entrance fee, winner selection, and prize payout
 
-**File:**
-- `src/Savings.sol`
-- `test/Savings.t.sol`
+## What I Practiced
+- Solidity fundamentals
+- ETH transfers
+- access control
+- mappings and arrays
+- payable functions
+- constructors
+- time-based logic
+- ERC-20 token mechanics
+- refund and claim patterns
+- staking and rewards
+- governance and voting
+- multi-signature flow
+- marketplace logic
+- auction systems
+- lottery mechanics
+- testing with Foundry
 
----
-
-### 2. Escrow Contract
-Smart contract escrow sederhana antara buyer dan seller.
-
-**Fitur:**
-- Buyer deposit ETH ke contract
-- Dana ditahan di contract
-- Buyer bisa release dana ke seller
-- Validasi agar hanya buyer yang bisa deposit dan release
-
-**File:**
-- `src/Escrow.sol`
-- `test/Escrow.t.sol`
-
----
-
-### 3. Vesting Contract
-Smart contract vesting sederhana untuk pelepasan dana bertahap berdasarkan waktu.
-
-**Fitur:**
-- Dana dikunci saat deploy
-- Beneficiary menerima dana secara bertahap
-- Release sebagian dana sesuai waktu yang sudah berjalan
-- Validasi agar hanya beneficiary yang bisa release
-
-**File:**
-- `src/Vesting.sol`
-- `test/Vesting.t.sol`
-
----
-
-### 4. MyToken (ERC-20)
-Smart contract token sederhana menggunakan OpenZeppelin.
-
-**Fitur:**
-- Initial supply diberikan ke owner saat deploy
-- Transfer token ke address lain
-- Owner bisa mint token baru
-- Non-owner tidak boleh mint
-
-**File:**
-- `src/MyToken.sol`
-- `test/MyToken.t.sol`
-
----
-
-### 5. Crowdfunding Contract
-Smart contract crowdfunding sederhana dengan target dana dan deadline.
-
-**Fitur:**
-- User bisa berkontribusi ETH
-- Campaign punya target dan deadline
-- Owner bisa claim dana jika target tercapai
-- User bisa refund jika target tidak tercapai
-- Kontribusi tiap user tercatat
-
-**File:**
-- `src/Crowdfunding.sol`
-- `test/Crowdfunding.t.sol`
-
----
-
-### 6. Staking Contract
-Smart contract staking sederhana menggunakan token ERC-20.
-
-**Fitur:**
-- User bisa stake token
-- Saldo stake per user tercatat
-- Reward dihitung berdasarkan waktu
-- User bisa claim reward
-- User bisa unstake token
-
-**File:**
-- `src/Staking.sol`
-- `test/Staking.t.sol`
-
----
-
-### 7. Voting / DAO Contract
-Smart contract voting sederhana untuk membuat proposal dan melakukan voting.
-
-**Fitur:**
-- Owner bisa membuat proposal
-- User bisa vote setuju atau tidak
-- Satu address hanya bisa vote satu kali per proposal
-- Proposal bisa difinalisasi
-- Hasil voting bisa dilihat
-
-**File:**
-- `src/Voting.sol`
-- `test/Voting.t.sol`
-
-### 8. MultiSig Wallet Contract
-Smart contract multi-signature wallet sederhana dengan beberapa owner dan minimum konfirmasi.
-
-**Fitur:**
-- Multiple owners
-- Submit transaction
-- Confirm transaction
-- Execute transaction setelah konfirmasi cukup
-- Minimum confirmations bisa diatur saat deploy
-
-**File:**
-- `src/MultiSigWallet.sol`
-- `test/MultiSigWallet.t.sol`
-
-### 9. Marketplace Contract
-Smart contract marketplace sederhana untuk listing dan membeli item dengan ETH.
-
-**Fitur:**
-- Seller bisa membuat listing
-- Buyer bisa membeli item dengan ETH
-- Item ditandai sold setelah dibeli
-- Seller menerima pembayaran
-- Buyer tidak bisa membeli item sendiri
-
-**File:**
-- `src/Marketplace.sol`
-- `test/Marketplace.t.sol`
-
----
-
-### 10. Timelock Wallet Contract
-Smart contract wallet sederhana yang mengunci dana sampai waktu tertentu.
-
-**Fitur:**
-- Dana dikunci sampai waktu unlock
-- Hanya owner yang bisa withdraw
-- Bisa menerima tambahan ETH
-- Withdraw hanya bisa dilakukan setelah waktu unlock
-- Saldo wallet bisa dilihat
-
-**File:**
-- `src/TimelockWallet.sol`
-- `test/TimelockWallet.t.sol`
-
----
-
-### 11. Auction Contract
-Smart contract auction sederhana untuk proses lelang dengan bidder tertinggi.
-
-**Fitur:**
-- User bisa melakukan bid dengan ETH
-- Bid baru harus lebih tinggi dari bid sebelumnya
-- Bidder sebelumnya bisa menarik refund
-- Owner bisa mengakhiri auction setelah deadline
-- Pemenang auction dan nilai tertinggi tercatat
-
-**File:**
-- `src/Auction.sol`
-- `test/Auction.t.sol`
-
-## Cara Menjalankan
+## Run Locally
 
 ```bash
 forge build
 forge test
-```
-
-## Yang Dipelajari
-- Solidity dasar
-- mapping
-- address
-- msg.sender
-- msg.value
-- payable
-- require
-- constructor
-- block.timestamp
-- escrow logic
-- vesting logic
-- ERC-20
-- Ownable
-- mint
-- transfer
-- OpenZeppelin
-- crowdfunding logic
-- deadline
-- refund
-- claim funds
-- staking logic
-- reward calculation
-- approve
-- transferFrom
-- claim reward
-- unstake
-- testing dengan Foundry
-- proposal logic
-- voting mechanism
-- one address one vote
-- finalize proposal
-- multisig logic
-- multiple owners
-- transaction confirmations
-- execute transaction
-- authorization flow
-- marketplace logic
-- listing item
-- buy flow
-- sold state
-- payment transfer
-- timelock logic
-- unlock time
-- owner-only withdraw
-- receive ETH
-- time-based access
-- auction logic
-- highest bidder
-- highest bid
-- refund mechanism
-- bidding flow
-- auction deadline
-- owner end auction
 
 ## Status
-- Savings Contract: selesai
-- Escrow Contract: selesai
-- Vesting Contract: selesai
-- MyToken (ERC-20): selesai
-- Crowdfunding Contract: selesai
-- Staking Contract: selesai
-- Voting / DAO Contract: selesai
-- MultiSig Wallet Contract: selesai
-- Marketplace Contract: selesai
-- Timelock Wallet Contract: selesai
-- Auction Contract: selesai
+All projects completed and tests passing.
 
-Semua test lulus.
+## Purpose
+This repository documents my hands-on progress in smart contract development through practical Solidity projects and testing with Foundry.
