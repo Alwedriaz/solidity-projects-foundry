@@ -5,6 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TokenLaunchManager {
     error NotOwner();
+    error NotAdmin();
     error InvalidAddress();
     error InvalidAmount();
     error InvalidRate();
@@ -17,6 +18,8 @@ contract TokenLaunchManager {
     error SaleAlreadyFinalized();
     error SaleCancelled();
     error SaleNotFinalized();
+    error BuyPaused();
+    error ClaimPaused();
     error ExceedsAllocation();
     error NothingPurchased();
     error NothingToClaim();
@@ -24,12 +27,15 @@ contract TokenLaunchManager {
     error AlreadyRefunded();
     error WithdrawalNotAvailable();
     error InsufficientAvailableAmount();
+    error ArrayLengthMismatch();
+    error EmptyBatch();
     error TransferFailed();
 
     uint256 public constant BPS_DENOMINATOR = 10_000;
     uint256 public constant RATE_PRECISION = 1e18;
 
     address public immutable owner;
+    address public launchOperator;
     IERC20 public immutable saleToken;
     IERC20 public immutable paymentToken;
 
@@ -41,6 +47,8 @@ contract TokenLaunchManager {
 
     bool public finalized;
     bool public cancelled;
+    bool public buyPaused;
+    bool public claimPaused;
     uint256 public finalizedAt;
 
     uint256 public totalRaised;
@@ -54,6 +62,9 @@ contract TokenLaunchManager {
     mapping(address => uint256) public claimedTokens;
     mapping(address => bool) public refunded;
 
+    event LaunchOperatorUpdated(address indexed previousOperator, address indexed newOperator);
+    event BuyPauseUpdated(bool isPaused);
+    event ClaimPauseUpdated(bool isPaused);
     event AllocationSet(address indexed user, uint256 maxPaymentAmount);
     event TokensPurchased(address indexed buyer, uint256 paymentAmount, uint256 tokenAmount);
     event SaleFinalized(uint256 finalizedAt);
@@ -68,6 +79,11 @@ contract TokenLaunchManager {
         _;
     }
 
+    modifier onlyAdmin() {
+        if (msg.sender != owner && msg.sender != launchOperator) revert NotAdmin();
+        _;
+    }
+
     constructor(
         address _saleToken,
         address _paymentToken,
@@ -77,7 +93,9 @@ contract TokenLaunchManager {
         uint256 _initialUnlockBps,
         uint256 _vestingDuration
     ) {
-        if (_saleToken == address(0) || _paymentToken == address(0)) revert InvalidAddress();
+        if (_saleToken == address(0) || _paymentToken == address(0)) {
+            revert InvalidAddress();
+        }
         if (_tokenRate == 0) revert InvalidRate();
         if (_saleEnd <= _saleStart) revert InvalidTime();
         if (_initialUnlockBps > BPS_DENOMINATOR) revert InvalidUnlockBps();
@@ -93,24 +111,52 @@ contract TokenLaunchManager {
         vestingDuration = _vestingDuration;
     }
 
-    function setAllocation(address user, uint256 maxPaymentAmount) external onlyOwner {
-        if (user == address(0)) revert InvalidAddress();
-        if (maxPaymentAmount == 0) revert InvalidAmount();
+    function setLaunchOperator(address newLaunchOperator) external onlyOwner {
+        if (newLaunchOperator == address(0)) revert InvalidAddress();
 
-        allocation[user] = maxPaymentAmount;
-        emit AllocationSet(user, maxPaymentAmount);
+        address previousOperator = launchOperator;
+        launchOperator = newLaunchOperator;
+
+        emit LaunchOperatorUpdated(previousOperator, newLaunchOperator);
+    }
+
+    function setBuyPaused(bool isPaused) external onlyAdmin {
+        buyPaused = isPaused;
+        emit BuyPauseUpdated(isPaused);
+    }
+
+    function setClaimPaused(bool isPaused) external onlyAdmin {
+        claimPaused = isPaused;
+        emit ClaimPauseUpdated(isPaused);
+    }
+
+    function setAllocation(address user, uint256 maxPaymentAmount) external onlyAdmin {
+        _setAllocation(user, maxPaymentAmount);
+    }
+
+    function batchSetAllocation(address[] calldata users, uint256[] calldata maxPaymentAmounts) external onlyAdmin {
+        uint256 length = users.length;
+        if (length == 0) revert EmptyBatch();
+        if (length != maxPaymentAmounts.length) revert ArrayLengthMismatch();
+
+        for (uint256 i = 0; i < length; i++) {
+            _setAllocation(users[i], maxPaymentAmounts[i]);
+        }
     }
 
     function buy(uint256 paymentAmount) external {
         if (cancelled) revert SaleCancelled();
         if (finalized) revert SaleAlreadyFinalized();
+        if (buyPaused) revert BuyPaused();
         if (block.timestamp < saleStart) revert SaleNotStarted();
         if (block.timestamp >= saleEnd) revert SaleEnded();
         if (paymentAmount == 0) revert InvalidAmount();
 
         uint256 maxAllocation = allocation[msg.sender];
         if (maxAllocation == 0) revert ExceedsAllocation();
-        if (purchasedPayment[msg.sender] + paymentAmount > maxAllocation) revert ExceedsAllocation();
+        if (purchasedPayment[msg.sender] + paymentAmount > maxAllocation) {
+            revert ExceedsAllocation();
+        }
 
         uint256 tokenAmount = _paymentToTokenAmount(paymentAmount);
 
@@ -147,6 +193,7 @@ contract TokenLaunchManager {
     function claim() external {
         if (!finalized) revert SaleNotFinalized();
         if (cancelled) revert SaleCancelled();
+        if (claimPaused) revert ClaimPaused();
 
         uint256 entitlement = purchasedTokenAmount(msg.sender);
         if (entitlement == 0) revert NothingPurchased();
@@ -279,5 +326,13 @@ contract TokenLaunchManager {
 
     function _paymentToTokenAmount(uint256 paymentAmount) internal view returns (uint256) {
         return (paymentAmount * tokenRate) / RATE_PRECISION;
+    }
+
+    function _setAllocation(address user, uint256 maxPaymentAmount) internal {
+        if (user == address(0)) revert InvalidAddress();
+        if (maxPaymentAmount == 0) revert InvalidAmount();
+
+        allocation[user] = maxPaymentAmount;
+        emit AllocationSet(user, maxPaymentAmount);
     }
 }

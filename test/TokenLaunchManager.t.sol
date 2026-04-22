@@ -27,6 +27,7 @@ contract TokenLaunchManagerTest is Test {
     TokenLaunchManager launch;
 
     address owner = address(this);
+    address operator = address(0xAA);
     address alice = address(0x1);
     address bob = address(0x2);
     address outsider = address(0x99);
@@ -78,19 +79,95 @@ contract TokenLaunchManagerTest is Test {
         assertEq(launch.tokenRate(), TOKEN_RATE);
         assertEq(launch.initialUnlockBps(), INITIAL_UNLOCK_BPS);
         assertEq(launch.vestingDuration(), VESTING_DURATION);
+        assertEq(launch.launchOperator(), address(0));
         assertFalse(launch.finalized());
         assertFalse(launch.cancelled());
+        assertFalse(launch.buyPaused());
+        assertFalse(launch.claimPaused());
     }
 
-    function testOnlyOwnerCanSetAllocation() public {
+    function testOnlyOwnerCanSetLaunchOperator() public {
         vm.prank(outsider);
         vm.expectRevert(TokenLaunchManager.NotOwner.selector);
+        launch.setLaunchOperator(operator);
+
+        launch.setLaunchOperator(operator);
+        assertEq(launch.launchOperator(), operator);
+    }
+
+    function testOnlyAdminCanSetAllocation() public {
+        vm.prank(outsider);
+        vm.expectRevert(TokenLaunchManager.NotAdmin.selector);
         launch.setAllocation(alice, 100 ether);
     }
 
-    function testSetAllocationStoresValue() public {
+    function testOwnerCanSetAllocation() public {
         launch.setAllocation(alice, 100 ether);
         assertEq(launch.allocation(alice), 100 ether);
+    }
+
+    function testOperatorCanSetAllocation() public {
+        launch.setLaunchOperator(operator);
+
+        vm.prank(operator);
+        launch.setAllocation(alice, 100 ether);
+
+        assertEq(launch.allocation(alice), 100 ether);
+    }
+
+    function testBatchSetAllocationWorks() public {
+        launch.setLaunchOperator(operator);
+
+        address[] memory users = new address[](2);
+        uint256[] memory amounts = new uint256[](2);
+
+        users[0] = alice;
+        users[1] = bob;
+        amounts[0] = 100 ether;
+        amounts[1] = 200 ether;
+
+        vm.prank(operator);
+        launch.batchSetAllocation(users, amounts);
+
+        assertEq(launch.allocation(alice), 100 ether);
+        assertEq(launch.allocation(bob), 200 ether);
+    }
+
+    function testBatchSetAllocationRevertsIfLengthMismatch() public {
+        launch.setLaunchOperator(operator);
+
+        address[] memory users = new address[](2);
+        uint256[] memory amounts = new uint256[](1);
+
+        users[0] = alice;
+        users[1] = bob;
+        amounts[0] = 100 ether;
+
+        vm.prank(operator);
+        vm.expectRevert(TokenLaunchManager.ArrayLengthMismatch.selector);
+        launch.batchSetAllocation(users, amounts);
+    }
+
+    function testOnlyAdminCanPauseBuyAndClaim() public {
+        vm.prank(outsider);
+        vm.expectRevert(TokenLaunchManager.NotAdmin.selector);
+        launch.setBuyPaused(true);
+
+        vm.prank(outsider);
+        vm.expectRevert(TokenLaunchManager.NotAdmin.selector);
+        launch.setClaimPaused(true);
+    }
+
+    function testOperatorCanPauseBuyAndClaim() public {
+        launch.setLaunchOperator(operator);
+
+        vm.prank(operator);
+        launch.setBuyPaused(true);
+        assertTrue(launch.buyPaused());
+
+        vm.prank(operator);
+        launch.setClaimPaused(true);
+        assertTrue(launch.claimPaused());
     }
 
     function testBuyRevertsBeforeSaleStart() public {
@@ -98,6 +175,17 @@ contract TokenLaunchManagerTest is Test {
 
         vm.prank(alice);
         vm.expectRevert(TokenLaunchManager.SaleNotStarted.selector);
+        launch.buy(100 ether);
+    }
+
+    function testBuyRevertsWhenBuyPaused() public {
+        launch.setAllocation(alice, 100 ether);
+        launch.setBuyPaused(true);
+
+        vm.warp(saleStart);
+
+        vm.prank(alice);
+        vm.expectRevert(TokenLaunchManager.BuyPaused.selector);
         launch.buy(100 ether);
     }
 
@@ -146,6 +234,22 @@ contract TokenLaunchManagerTest is Test {
 
         assertTrue(launch.finalized());
         assertEq(launch.finalizedAt(), saleEnd);
+    }
+
+    function testClaimRevertsWhenClaimPaused() public {
+        launch.setAllocation(alice, 100 ether);
+
+        vm.warp(saleStart);
+        vm.prank(alice);
+        launch.buy(100 ether);
+
+        vm.warp(saleEnd);
+        launch.finalizeSale();
+        launch.setClaimPaused(true);
+
+        vm.prank(alice);
+        vm.expectRevert(TokenLaunchManager.ClaimPaused.selector);
+        launch.claim();
     }
 
     function testInitialClaimAfterFinalizeWorks() public {
