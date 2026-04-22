@@ -12,7 +12,7 @@ This repository contains hands-on projects covering core smart contract patterns
 - Includes automated testing with **Forge**
 - Organized as a practical smart contract portfolio
 
-## Featured Hands-On Case Study
+## Featured Hands-On Case Studies
 
 ### Stablecoin Payroll Manager
 
@@ -28,6 +28,21 @@ A product-style smart contract case study for recurring stablecoin payroll distr
 - batch recipient management for real operational workflows
 
 This case study was built as a more realistic, product-oriented smart contract system rather than a single isolated practice contract.
+
+### Token Launch Allocation Manager
+
+A product-style smart contract case study for managing a token launch with whitelist allocation, payment tracking, vesting-based claims, and refund flow if the sale is cancelled.
+
+**What it demonstrates:**
+- per-user whitelist allocation
+- capped token purchase flow
+- payment token collection during sale
+- token claim flow after sale finalization
+- initial unlock plus vesting-based release
+- refund path when sale is cancelled
+- sale lifecycle handling for launch operations
+
+This case study was built as a more realistic token launch system instead of a single isolated token sale contract.
 
 ## Tech Stack
 
@@ -111,6 +126,10 @@ This case study was built as a more realistic, product-oriented smart contract s
 - token timelock patterns
 - advanced multisig treasury execution
 - lending and collateral logic
+- product-style smart contract case study development
+- recurring payroll system design
+- token launch allocation and claim flow
+- requirement-change driven iteration
 - testing with Foundry
 
 ## Run Locally
@@ -133,4 +152,4 @@ All 30 projects completed and tests passing.
 
 ## Purpose
 
-This repository documents my hands-on progress in smart contract development through practical Solidity projects and testing with Foundry.
+This repository documents my hands-on progress in smart contract development through practical Solidity projects, testing with Foundry, and more realistic product-style case studies.
