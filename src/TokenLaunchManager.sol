@@ -22,6 +22,8 @@ contract TokenLaunchManager {
     error NothingToClaim();
     error RefundNotAvailable();
     error AlreadyRefunded();
+    error WithdrawalNotAvailable();
+    error InsufficientAvailableAmount();
     error TransferFailed();
 
     uint256 public constant BPS_DENOMINATOR = 10_000;
@@ -43,6 +45,9 @@ contract TokenLaunchManager {
 
     uint256 public totalRaised;
     uint256 public totalTokensSold;
+    uint256 public totalClaimedTokens;
+    uint256 public totalPaymentWithdrawn;
+    uint256 public totalUnsoldWithdrawn;
 
     mapping(address => uint256) public allocation;
     mapping(address => uint256) public purchasedPayment;
@@ -55,6 +60,8 @@ contract TokenLaunchManager {
     event SaleCancelledByOwner();
     event TokensClaimed(address indexed user, uint256 amount);
     event Refunded(address indexed user, uint256 paymentAmount);
+    event RaisedFundsWithdrawn(address indexed owner, uint256 amount);
+    event UnsoldSaleTokensWithdrawn(address indexed owner, uint256 amount);
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -148,6 +155,7 @@ contract TokenLaunchManager {
         if (claimable == 0) revert NothingToClaim();
 
         claimedTokens[msg.sender] += claimable;
+        totalClaimedTokens += claimable;
 
         bool success = saleToken.transfer(msg.sender, claimable);
         if (!success) revert TransferFailed();
@@ -173,6 +181,36 @@ contract TokenLaunchManager {
         if (!success) revert TransferFailed();
 
         emit Refunded(msg.sender, paymentAmount);
+    }
+
+    function withdrawRaisedFunds(uint256 amount) external onlyOwner {
+        if (!finalized || cancelled) revert WithdrawalNotAvailable();
+        if (amount == 0) revert InvalidAmount();
+
+        uint256 available = paymentToken.balanceOf(address(this));
+        if (amount > available) revert InsufficientAvailableAmount();
+
+        totalPaymentWithdrawn += amount;
+
+        bool success = paymentToken.transfer(owner, amount);
+        if (!success) revert TransferFailed();
+
+        emit RaisedFundsWithdrawn(owner, amount);
+    }
+
+    function withdrawUnsoldSaleTokens(uint256 amount) external onlyOwner {
+        if (!finalized && !cancelled) revert WithdrawalNotAvailable();
+        if (amount == 0) revert InvalidAmount();
+
+        uint256 available = availableUnsoldSaleTokens();
+        if (amount > available) revert InsufficientAvailableAmount();
+
+        totalUnsoldWithdrawn += amount;
+
+        bool success = saleToken.transfer(owner, amount);
+        if (!success) revert TransferFailed();
+
+        emit UnsoldSaleTokensWithdrawn(owner, amount);
     }
 
     function purchasedTokenAmount(address user) public view returns (uint256) {
@@ -209,6 +247,26 @@ contract TokenLaunchManager {
         }
 
         return vested - alreadyClaimed;
+    }
+
+    function availableUnsoldSaleTokens() public view returns (uint256) {
+        uint256 balance = saleToken.balanceOf(address(this));
+
+        if (cancelled) {
+            return balance;
+        }
+
+        if (!finalized) {
+            return 0;
+        }
+
+        uint256 requiredForClaims = totalTokensSold - totalClaimedTokens;
+
+        if (balance <= requiredForClaims) {
+            return 0;
+        }
+
+        return balance - requiredForClaims;
     }
 
     function getPaymentTokenBalance() external view returns (uint256) {

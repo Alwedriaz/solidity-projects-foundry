@@ -275,4 +275,116 @@ contract TokenLaunchManagerTest is Test {
         vm.expectRevert(TokenLaunchManager.RefundNotAvailable.selector);
         launch.refund();
     }
+
+    function testWithdrawRaisedFundsRevertsBeforeFinalize() public {
+        launch.setAllocation(alice, 100 ether);
+
+        vm.warp(saleStart);
+        vm.prank(alice);
+        launch.buy(100 ether);
+
+        vm.expectRevert(TokenLaunchManager.WithdrawalNotAvailable.selector);
+        launch.withdrawRaisedFunds(100 ether);
+    }
+
+    function testOwnerCanWithdrawRaisedFundsAfterFinalize() public {
+        launch.setAllocation(alice, 100 ether);
+
+        vm.warp(saleStart);
+        vm.prank(alice);
+        launch.buy(100 ether);
+
+        vm.warp(saleEnd);
+        launch.finalizeSale();
+
+        uint256 ownerBalanceBefore = paymentToken.balanceOf(owner);
+
+        launch.withdrawRaisedFunds(100 ether);
+
+        assertEq(paymentToken.balanceOf(owner), ownerBalanceBefore + 100 ether);
+        assertEq(paymentToken.balanceOf(address(launch)), 0);
+        assertEq(launch.totalPaymentWithdrawn(), 100 ether);
+    }
+
+    function testNonOwnerCannotWithdrawRaisedFunds() public {
+        launch.setAllocation(alice, 100 ether);
+
+        vm.warp(saleStart);
+        vm.prank(alice);
+        launch.buy(100 ether);
+
+        vm.warp(saleEnd);
+        launch.finalizeSale();
+
+        vm.prank(outsider);
+        vm.expectRevert(TokenLaunchManager.NotOwner.selector);
+        launch.withdrawRaisedFunds(100 ether);
+    }
+
+    function testWithdrawUnsoldSaleTokensRevertsBeforeFinalizeOrCancel() public {
+        vm.expectRevert(TokenLaunchManager.WithdrawalNotAvailable.selector);
+        launch.withdrawUnsoldSaleTokens(1 ether);
+    }
+
+    function testOwnerCanWithdrawUnsoldSaleTokensAfterFinalizeAndKeepClaimBuffer() public {
+        launch.setAllocation(alice, 100 ether);
+
+        vm.warp(saleStart);
+        vm.prank(alice);
+        launch.buy(100 ether);
+
+        vm.warp(saleEnd);
+        launch.finalizeSale();
+
+        uint256 availableUnsold = launch.availableUnsoldSaleTokens();
+        assertEq(availableUnsold, 999_800 ether);
+
+        launch.withdrawUnsoldSaleTokens(availableUnsold);
+
+        assertEq(saleToken.balanceOf(address(launch)), 200 ether);
+        assertEq(launch.totalUnsoldWithdrawn(), 999_800 ether);
+
+        vm.prank(alice);
+        launch.claim();
+
+        assertEq(saleToken.balanceOf(alice), 40 ether);
+
+        vm.warp(saleEnd + 100 days);
+
+        vm.prank(alice);
+        launch.claim();
+
+        assertEq(saleToken.balanceOf(alice), 200 ether);
+    }
+
+    function testOwnerCanWithdrawAllSaleTokensAfterCancellation() public {
+        launch.setAllocation(alice, 100 ether);
+
+        vm.warp(saleStart);
+        vm.prank(alice);
+        launch.buy(100 ether);
+
+        launch.cancelSale();
+
+        uint256 saleTokenBalanceBefore = saleToken.balanceOf(owner);
+        uint256 contractSaleTokenBalance = saleToken.balanceOf(address(launch));
+
+        launch.withdrawUnsoldSaleTokens(contractSaleTokenBalance);
+
+        assertEq(saleToken.balanceOf(owner), saleTokenBalanceBefore + contractSaleTokenBalance);
+        assertEq(saleToken.balanceOf(address(launch)), 0);
+    }
+
+    function testRaisedFundsCannotBeWithdrawnAfterCancellation() public {
+        launch.setAllocation(alice, 100 ether);
+
+        vm.warp(saleStart);
+        vm.prank(alice);
+        launch.buy(100 ether);
+
+        launch.cancelSale();
+
+        vm.expectRevert(TokenLaunchManager.WithdrawalNotAvailable.selector);
+        launch.withdrawRaisedFunds(100 ether);
+    }
 }
