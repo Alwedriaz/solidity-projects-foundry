@@ -40,9 +40,29 @@ A product-style smart contract case study for managing a token launch with white
 - token claim flow after sale finalization
 - initial unlock plus vesting-based release
 - refund path when sale is cancelled
-- sale lifecycle handling for launch operations
+- raised fund withdrawal after successful sale
+- unsold token withdrawal with claim protection
+- launch operator role
+- pause controls for buy and claim
+- batch allocation for launch operations
 
 This case study was built as a more realistic token launch system instead of a single isolated token sale contract.
+
+### Service Escrow with Dispute Resolution
+
+A product-style smart contract case study for milestone-based service payments with escrow custody and dispute handling.
+
+**What it demonstrates:**
+- escrowed milestone funding
+- buyer approval flow
+- seller claim flow
+- dispute opening by buyer
+- arbiter-based dispute resolution
+- release-to-seller or refund-to-buyer outcomes
+- milestone state tracking across approval, dispute, release, and refund
+- role-based control for buyer, seller, and arbiter
+
+This case study was built as a more realistic service payment and dispute-resolution system instead of a single isolated escrow contract.
 
 ## Tech Stack
 
@@ -129,6 +149,7 @@ This case study was built as a more realistic token launch system instead of a s
 - product-style smart contract case study development
 - recurring payroll system design
 - token launch allocation and claim flow
+- escrow dispute handling
 - requirement-change driven iteration
 - testing with Foundry
 
