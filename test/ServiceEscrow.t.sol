@@ -40,8 +40,16 @@ contract ServiceEscrowTest is Test {
         assertEq(escrow.getMilestoneCount(), 3);
         assertEq(address(escrow).balance, TOTAL_FUNDED);
 
-        (uint256 amount, bool approved, bool disputed, bool resolved, bool released, bool refunded) =
-            escrow.getMilestone(0);
+        (
+            uint256 amount,
+            bool approved,
+            bool disputed,
+            bool resolved,
+            bool released,
+            bool refunded,
+            uint256 sellerAward,
+            uint256 buyerRefund
+        ) = escrow.getMilestone(0);
 
         assertEq(amount, MILESTONE_1);
         assertFalse(approved);
@@ -49,6 +57,8 @@ contract ServiceEscrowTest is Test {
         assertFalse(resolved);
         assertFalse(released);
         assertFalse(refunded);
+        assertEq(sellerAward, 0);
+        assertEq(buyerRefund, 0);
     }
 
     function testConstructorRevertsIfFundingMismatch() public {
@@ -71,7 +81,7 @@ contract ServiceEscrowTest is Test {
         vm.prank(buyer);
         escrow.approveMilestone(1);
 
-        (, bool approved,,,,) = escrow.getMilestone(1);
+        (, bool approved,,,,,,) = escrow.getMilestone(1);
         assertTrue(approved);
     }
 
@@ -93,10 +103,14 @@ contract ServiceEscrowTest is Test {
         vm.prank(seller);
         escrow.claimMilestone(0);
 
-        (, bool approved,,, bool released,) = escrow.getMilestone(0);
+        (, bool approved,,, bool released, bool refunded, uint256 sellerAward, uint256 buyerRefund) =
+            escrow.getMilestone(0);
 
         assertTrue(approved);
         assertTrue(released);
+        assertFalse(refunded);
+        assertEq(sellerAward, MILESTONE_1);
+        assertEq(buyerRefund, 0);
         assertEq(seller.balance, sellerBalanceBefore + MILESTONE_1);
         assertEq(address(escrow).balance, TOTAL_FUNDED - MILESTONE_1);
         assertEq(escrow.totalReleased(), MILESTONE_1);
@@ -118,7 +132,7 @@ contract ServiceEscrowTest is Test {
         vm.prank(buyer);
         escrow.openDispute(1);
 
-        (,, bool disputed,,,) = escrow.getMilestone(1);
+        (,, bool disputed,,,,,) = escrow.getMilestone(1);
         assertTrue(disputed);
     }
 
@@ -146,12 +160,15 @@ contract ServiceEscrowTest is Test {
         vm.prank(arbiter);
         escrow.resolveDispute(1, true);
 
-        (,, bool disputed, bool resolved, bool released, bool refunded) = escrow.getMilestone(1);
+        (,, bool disputed, bool resolved, bool released, bool refunded, uint256 sellerAward, uint256 buyerRefund) =
+            escrow.getMilestone(1);
 
         assertTrue(disputed);
         assertTrue(resolved);
         assertTrue(released);
         assertFalse(refunded);
+        assertEq(sellerAward, MILESTONE_2);
+        assertEq(buyerRefund, 0);
         assertEq(seller.balance, sellerBalanceBefore + MILESTONE_2);
         assertEq(address(escrow).balance, TOTAL_FUNDED - MILESTONE_2);
         assertEq(escrow.totalReleased(), MILESTONE_2);
@@ -166,15 +183,57 @@ contract ServiceEscrowTest is Test {
         vm.prank(arbiter);
         escrow.resolveDispute(2, false);
 
-        (,, bool disputed, bool resolved, bool released, bool refunded) = escrow.getMilestone(2);
+        (,, bool disputed, bool resolved, bool released, bool refunded, uint256 sellerAward, uint256 buyerRefund) =
+            escrow.getMilestone(2);
 
         assertTrue(disputed);
         assertTrue(resolved);
         assertFalse(released);
         assertTrue(refunded);
+        assertEq(sellerAward, 0);
+        assertEq(buyerRefund, MILESTONE_3);
         assertEq(buyer.balance, buyerBalanceBefore + MILESTONE_3);
         assertEq(address(escrow).balance, TOTAL_FUNDED - MILESTONE_3);
         assertEq(escrow.totalRefunded(), MILESTONE_3);
+    }
+
+    function testArbiterCanResolveDisputeWithPartialSplit() public {
+        vm.prank(buyer);
+        escrow.openDispute(1);
+
+        uint256 sellerBalanceBefore = seller.balance;
+        uint256 buyerBalanceBefore = buyer.balance;
+
+        uint256 sellerPortion = 15 ether / 10; // 1.5 ether from milestone 2 ether
+
+        vm.prank(arbiter);
+        escrow.resolveDisputeSplit(1, sellerPortion);
+
+        (,, bool disputed, bool resolved, bool released, bool refunded, uint256 sellerAward, uint256 buyerRefund) =
+            escrow.getMilestone(1);
+
+        assertTrue(disputed);
+        assertTrue(resolved);
+        assertTrue(released);
+        assertTrue(refunded);
+        assertEq(sellerAward, sellerPortion);
+        assertEq(buyerRefund, MILESTONE_2 - sellerPortion);
+
+        assertEq(seller.balance, sellerBalanceBefore + sellerPortion);
+        assertEq(buyer.balance, buyerBalanceBefore + (MILESTONE_2 - sellerPortion));
+
+        assertEq(escrow.totalReleased(), sellerPortion);
+        assertEq(escrow.totalRefunded(), MILESTONE_2 - sellerPortion);
+        assertEq(address(escrow).balance, TOTAL_FUNDED - MILESTONE_2);
+    }
+
+    function testResolveSplitRevertsIfSellerAmountTooHigh() public {
+        vm.prank(buyer);
+        escrow.openDispute(0);
+
+        vm.prank(arbiter);
+        vm.expectRevert(ServiceEscrow.InvalidResolutionAmount.selector);
+        escrow.resolveDisputeSplit(0, MILESTONE_1 + 1);
     }
 
     function testCannotApproveDisputedMilestone() public {

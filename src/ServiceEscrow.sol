@@ -11,6 +11,7 @@ contract ServiceEscrow {
     error ZeroMilestoneAmount();
     error FundingMismatch();
     error InvalidMilestoneId();
+    error InvalidResolutionAmount();
     error MilestoneAlreadyApproved();
     error MilestoneNotApproved();
     error MilestoneAlreadyReleased();
@@ -26,6 +27,8 @@ contract ServiceEscrow {
         bool resolved;
         bool released;
         bool refunded;
+        uint256 sellerAward;
+        uint256 buyerRefund;
     }
 
     address public immutable buyer;
@@ -41,7 +44,7 @@ contract ServiceEscrow {
     event MilestoneApproved(uint256 indexed milestoneId, uint256 amount);
     event MilestoneClaimed(uint256 indexed milestoneId, uint256 amount);
     event DisputeOpened(uint256 indexed milestoneId);
-    event DisputeResolved(uint256 indexed milestoneId, bool releasedToSeller, uint256 amount);
+    event DisputeResolved(uint256 indexed milestoneId, uint256 sellerAward, uint256 buyerRefund);
 
     modifier onlyBuyer() {
         if (msg.sender != buyer) revert NotBuyer();
@@ -71,7 +74,14 @@ contract ServiceEscrow {
 
             milestones.push(
                 Milestone({
-                    amount: amount, approved: false, disputed: false, resolved: false, released: false, refunded: false
+                    amount: amount,
+                    approved: false,
+                    disputed: false,
+                    resolved: false,
+                    released: false,
+                    refunded: false,
+                    sellerAward: 0,
+                    buyerRefund: 0
                 })
             );
 
@@ -112,6 +122,7 @@ contract ServiceEscrow {
         if (milestone.released) revert MilestoneAlreadyReleased();
 
         milestone.released = true;
+        milestone.sellerAward = milestone.amount;
         totalReleased += milestone.amount;
 
         (bool success,) = payable(seller).call{value: milestone.amount}("");
@@ -137,33 +148,27 @@ contract ServiceEscrow {
     function resolveDispute(uint256 milestoneId, bool releaseToSeller) external onlyArbiter {
         if (milestoneId >= milestones.length) revert InvalidMilestoneId();
 
-        Milestone storage milestone = milestones[milestoneId];
+        uint256 sellerAmount = releaseToSeller ? milestones[milestoneId].amount : 0;
+        _resolveDisputeSplit(milestoneId, sellerAmount);
+    }
 
-        if (!milestone.disputed) revert MilestoneNotDisputed();
-        if (milestone.resolved) revert MilestoneAlreadyResolved();
-
-        milestone.resolved = true;
-
-        address recipient = releaseToSeller ? seller : buyer;
-
-        if (releaseToSeller) {
-            milestone.released = true;
-            totalReleased += milestone.amount;
-        } else {
-            milestone.refunded = true;
-            totalRefunded += milestone.amount;
-        }
-
-        (bool success,) = payable(recipient).call{value: milestone.amount}("");
-        if (!success) revert TransferFailed();
-
-        emit DisputeResolved(milestoneId, releaseToSeller, milestone.amount);
+    function resolveDisputeSplit(uint256 milestoneId, uint256 sellerAmount) external onlyArbiter {
+        _resolveDisputeSplit(milestoneId, sellerAmount);
     }
 
     function getMilestone(uint256 milestoneId)
         external
         view
-        returns (uint256 amount, bool approved, bool disputed, bool resolved, bool released, bool refunded)
+        returns (
+            uint256 amount,
+            bool approved,
+            bool disputed,
+            bool resolved,
+            bool released,
+            bool refunded,
+            uint256 sellerAward,
+            uint256 buyerRefund
+        )
     {
         if (milestoneId >= milestones.length) revert InvalidMilestoneId();
 
@@ -174,7 +179,9 @@ contract ServiceEscrow {
             milestone.disputed,
             milestone.resolved,
             milestone.released,
-            milestone.refunded
+            milestone.refunded,
+            milestone.sellerAward,
+            milestone.buyerRefund
         );
     }
 
@@ -184,5 +191,39 @@ contract ServiceEscrow {
 
     function getContractBalance() external view returns (uint256) {
         return address(this).balance;
+    }
+
+    function _resolveDisputeSplit(uint256 milestoneId, uint256 sellerAmount) internal {
+        if (milestoneId >= milestones.length) revert InvalidMilestoneId();
+
+        Milestone storage milestone = milestones[milestoneId];
+
+        if (!milestone.disputed) revert MilestoneNotDisputed();
+        if (milestone.resolved) revert MilestoneAlreadyResolved();
+        if (sellerAmount > milestone.amount) revert InvalidResolutionAmount();
+
+        uint256 buyerAmount = milestone.amount - sellerAmount;
+
+        milestone.resolved = true;
+        milestone.sellerAward = sellerAmount;
+        milestone.buyerRefund = buyerAmount;
+
+        if (sellerAmount > 0) {
+            milestone.released = true;
+            totalReleased += sellerAmount;
+
+            (bool sellerSuccess,) = payable(seller).call{value: sellerAmount}("");
+            if (!sellerSuccess) revert TransferFailed();
+        }
+
+        if (buyerAmount > 0) {
+            milestone.refunded = true;
+            totalRefunded += buyerAmount;
+
+            (bool buyerSuccess,) = payable(buyer).call{value: buyerAmount}("");
+            if (!buyerSuccess) revert TransferFailed();
+        }
+
+        emit DisputeResolved(milestoneId, sellerAmount, buyerAmount);
     }
 }
